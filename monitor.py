@@ -9,8 +9,8 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ========== CONFIGURAÇÕES ==========
-NOME_BUSCA = "GABRIEL DE OLIVEIRA"
-CARGO_BUSCA = "AGENTE DE APOIO"
+NOME_BUSCA = ""
+CARGO_BUSCA = ""
 URL_SOROCABA = "https://noticias.sorocaba.sp.gov.br/jornal/"
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
