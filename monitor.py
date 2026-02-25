@@ -7,28 +7,27 @@ from datetime import datetime
 import unicodedata
 import urllib3
 
-# Desativa aviso de SSL inseguro
+# Desativa aviso SSL (site prefeitura pode ter certificado vencido)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ========== CONFIGURAÇÕES ==========
-NOME_BUSCA = "GABRIEL DE OLIVEIRA"
-CARGO_BUSCA = "AGENTE DE APOIO"
 URL_SOROCABA = "https://noticias.sorocaba.sp.gov.br/jornal/"
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+NOME_BUSCA = os.getenv("NOME_BUSCA")
+CARGO_BUSCA = os.getenv("CARGO_BUSCA")
 
-if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
-    raise ValueError("TELEGRAM_TOKEN ou TELEGRAM_CHAT_ID não configurados.")
+if not all([TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, NOME_BUSCA, CARGO_BUSCA]):
+    raise ValueError("Variáveis de ambiente não configuradas corretamente.")
 
 # ========== SESSION ==========
 session = requests.Session()
 session.headers.update({'User-Agent': 'Mozilla/5.0'})
-session.verify = False  # ← FORÇA verify=False em toda sessão
+session.verify = False
 
 
-# ========== FUNÇÕES AUXILIARES ==========
-
+# ========== FUNÇÕES ==========
 def normalizar(txt):
     if not txt:
         return ""
@@ -125,7 +124,7 @@ def buscar_diario():
         pdfs = buscar_links_pdf()
 
         if not pdfs:
-            enviar_telegram("⚠️ Nenhum PDF encontrado no site.")
+            enviar_telegram("⚠️ Nenhum PDF encontrado.")
             return
 
         relatorio = []
