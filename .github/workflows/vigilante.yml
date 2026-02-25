@@ -25,4 +25,6 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          NOME_BUSCA: ${{ secrets.NOME_BUSCA }}
+          CARGO_BUSCA: ${{ secrets.CARGO_BUSCA }}
         run: python monitor.py
