@@ -14,7 +14,10 @@ from urllib3.util.retry import Retry
 # ================= CONFIG =================
 
 URL_SOROCABA = "https://noticias.sorocaba.sp.gov.br/jornal/"
+BASE_URL = "https://noticias.sorocaba.sp.gov.br"
+
 ARQUIVO_CONTROLE = "pdfs_processados.txt"
+ARQUIVO_HEARTBEAT = "heartbeat.txt"
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
@@ -44,14 +47,14 @@ session.headers.update({
 retry_strategy = Retry(
     total=3,
     backoff_factor=1,
-    status_forcelist=[429, 500, 502, 503, 503, 504],
+    status_forcelist=[429, 500, 502, 503, 504],
 )
 
 adapter = HTTPAdapter(max_retries=retry_strategy)
 session.mount("https://", adapter)
 session.mount("http://", adapter)
 
-# ================= FUNÇÕES =================
+# ================= UTIL =================
 
 def normalizar(txt):
     if not txt:
@@ -60,28 +63,6 @@ def normalizar(txt):
     txt = txt.encode("ASCII", "ignore").decode("ASCII")
     txt = re.sub(r"\s+", " ", txt)
     return txt.upper().strip()
-
-
-def carregar_processados():
-    if not os.path.exists(ARQUIVO_CONTROLE):
-        return {}
-    processados = {}
-    with open(ARQUIVO_CONTROLE, "r") as f:
-        for linha in f:
-            linha = linha.strip()
-            if "|" in linha:
-                link, hash_pdf = linha.split("|")
-                processados[link] = hash_pdf
-    return processados
-
-
-def salvar_processado(link, hash_pdf):
-    processados = carregar_processados()
-    processados[link] = hash_pdf
-
-    with open(ARQUIVO_CONTROLE, "w") as f:
-        for l, h in processados.items():
-            f.write(f"{l}|{h}\n")
 
 
 def enviar_telegram(mensagem):
@@ -101,28 +82,98 @@ def enviar_telegram(mensagem):
         logging.error(f"Erro ao enviar Telegram: {e}")
 
 
+# ================= HEARTBEAT =================
+
+def atualizar_heartbeat():
+    with open(ARQUIVO_HEARTBEAT, "w") as f:
+        f.write(datetime.now().isoformat())
+
+
+def verificar_heartbeat():
+    if not os.path.exists(ARQUIVO_HEARTBEAT):
+        return
+
+    try:
+        with open(ARQUIVO_HEARTBEAT, "r") as f:
+            ultima = datetime.fromisoformat(f.read().strip())
+
+        diferenca = datetime.now() - ultima
+
+        if diferenca.total_seconds() > 60 * 60 * 48:
+            enviar_telegram(
+                "⚠️ <b>ALERTA:</b>\nO vigilante pode não estar rodando há mais de 48h."
+            )
+    except:
+        pass
+
+
+# ================= CONTROLE HASH =================
+
+def carregar_processados():
+    if not os.path.exists(ARQUIVO_CONTROLE):
+        return {}
+
+    processados = {}
+    with open(ARQUIVO_CONTROLE, "r") as f:
+        for linha in f:
+            linha = linha.strip()
+            if "|" in linha:
+                link, hash_pdf = linha.split("|")
+                processados[link] = hash_pdf
+    return processados
+
+
+def salvar_processado(link, hash_pdf):
+    processados = carregar_processados()
+    processados[link] = hash_pdf
+
+    with open(ARQUIVO_CONTROLE, "w") as f:
+        for l, h in processados.items():
+            f.write(f"{l}|{h}\n")
+
+
+# ================= BUSCA PDFs (BLINDADO) =================
+
 def buscar_links_pdf():
     response = session.get(URL_SOROCABA, timeout=40)
     response.raise_for_status()
 
-    soup = BeautifulSoup(response.text, 'html.parser')
+    html = response.text
+    soup = BeautifulSoup(html, 'html.parser')
 
     pdfs = []
     vistos = set()
 
+    # MÉTODO PRINCIPAL (HTML normal)
     for a in soup.find_all('a', href=True):
         href = a['href']
         if '.pdf' in href.lower():
 
-            link = href if href.startswith('http') else \
-                "https://noticias.sorocaba.sp.gov.br" + href
+            link = href if href.startswith('http') else BASE_URL + href
 
             if link not in vistos:
-                pdfs.append((a.get_text(strip=True), link))
+                titulo = a.get_text(strip=True) or "Diário Oficial"
+                pdfs.append((titulo, link))
                 vistos.add(link)
+
+    # FALLBACK se layout mudar
+    if not pdfs:
+        logging.warning("Nenhum PDF encontrado via HTML. Tentando fallback regex...")
+
+        matches = re.findall(r'https?://[^\s"]+\.pdf', html, re.IGNORECASE)
+
+        for link in matches:
+            if link not in vistos:
+                pdfs.append(("Diário Oficial (fallback)", link))
+                vistos.add(link)
+
+    if not pdfs:
+        raise Exception("Nenhum PDF encontrado - possível mudança de layout.")
 
     return pdfs
 
+
+# ================= ANALISAR PDF =================
 
 def analisar_pdf(titulo, link_pdf, processados):
     resultado = {
@@ -143,7 +194,7 @@ def analisar_pdf(titulo, link_pdf, processados):
         hash_pdf = hashlib.md5(response.content).hexdigest()
         resultado["hash"] = hash_pdf
 
-        # Se já processado com mesmo hash, ignora
+        # Ignorar se já processado e igual
         if link_pdf in processados and processados[link_pdf] == hash_pdf:
             logging.info("PDF já processado e não alterado.")
             return None
@@ -162,7 +213,6 @@ def analisar_pdf(titulo, link_pdf, processados):
                 # PRIORIDADE 1: NOME
                 if nome_norm in texto_norm:
                     resultado["nome_encontrado"] = True
-
                     idx = texto_norm.find(nome_norm)
                     resultado["trecho"] = texto_norm[max(0, idx-120):idx+120]
                     break
@@ -178,15 +228,16 @@ def analisar_pdf(titulo, link_pdf, processados):
         return resultado
 
 
+# ================= FUNÇÃO PRINCIPAL =================
+
 def buscar_diario():
+
+    verificar_heartbeat()
+
     try:
         pdfs = buscar_links_pdf()
-
-        if not pdfs:
-            enviar_telegram("⚠️ Nenhum PDF encontrado.")
-            return
-
         processados = carregar_processados()
+
         alertas = []
 
         for titulo, link in pdfs:
@@ -198,6 +249,11 @@ def buscar_diario():
 
             if resultado["erro"]:
                 logging.error(resultado["erro"])
+                enviar_telegram(
+                    f"❌ <b>Erro ao analisar PDF</b>\n"
+                    f"<b>{titulo}</b>\n"
+                    f"<code>{resultado['erro']}</code>"
+                )
                 continue
 
             salvar_processado(link, resultado["hash"])
@@ -213,7 +269,7 @@ def buscar_diario():
 
             elif resultado["cargo_encontrado"]:
                 alerta = (
-                    f"🔔 Cargo encontrado\n"
+                    f"🔔 <b>Cargo encontrado</b>\n"
                     f"<b>{titulo}</b>\n"
                     f"<a href=\"{link}\">Abrir PDF</a>"
                 )
@@ -226,12 +282,15 @@ def buscar_diario():
                 + "\n\n".join(alertas)
             )
             enviar_telegram(mensagem)
-        else:
-            logging.info("Nenhuma ocorrência encontrada.")
+
+        atualizar_heartbeat()
 
     except Exception as e:
         logging.error(f"Erro geral: {e}")
-        enviar_telegram(f"❌ Erro geral:\n<code>{str(e)}</code>")
+        enviar_telegram(
+            f"❌ <b>Erro geral no vigilante</b>\n"
+            f"<code>{str(e)}</code>"
+        )
 
 
 if __name__ == "__main__":
