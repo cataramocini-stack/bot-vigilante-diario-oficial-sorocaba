@@ -9,17 +9,26 @@ jobs:
   vigilante:
     runs-on: ubuntu-latest
     
+    # Permissões necessárias para o Action conseguir dar "push" no arquivo de texto
+    permissions:
+      contents: write
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          persist-credentials: true # Mantém as credenciais para o push final
         
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
+          cache: 'pip' # Otimiza as próximas execuções
           
       - name: Instalar dependências
-        run: pip install requests beautifulsoup4 pdfplumber
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 pdfplumber
         
       - name: Executar vigilante
         env:
@@ -28,3 +37,14 @@ jobs:
           NOME_BUSCA: ${{ secrets.NOME_BUSCA }}
           CARGO_BUSCA: ${{ secrets.CARGO_BUSCA }}
         run: python monitor.py
+
+      - name: Salvar progresso (Commit e Push)
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          # Só adiciona o arquivo se ele existir e tiver sido alterado
+          if [ -f pdfs_processados.txt ]; then
+            git add pdfs_processados.txt
+            git commit -m "Update: Histórico de PDFs processados [skip ci]" || echo "Sem mudanças para salvar"
+            git push
+          fi
