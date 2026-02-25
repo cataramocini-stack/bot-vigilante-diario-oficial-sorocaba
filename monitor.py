@@ -5,9 +5,9 @@ import io
 import os
 from datetime import datetime
 import unicodedata
-import urllib3
 import re
 import logging
+import hashlib
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -31,18 +31,20 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-# ================= SESSION COM RETRY =================
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# ================= SESSION =================
 
 session = requests.Session()
-session.headers.update({'User-Agent': 'Mozilla/5.0'})
-session.verify = False
+
+session.headers.update({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/120.0.0.0 Safari/537.36"
+})
 
 retry_strategy = Retry(
     total=3,
     backoff_factor=1,
-    status_forcelist=[429, 500, 502, 503, 504],
+    status_forcelist=[429, 500, 502, 503, 503, 504],
 )
 
 adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -54,24 +56,32 @@ session.mount("http://", adapter)
 def normalizar(txt):
     if not txt:
         return ""
-    return unicodedata.normalize("NFKD", txt).encode("ASCII", "ignore").decode("ASCII").upper()
-
-
-def contem_palavra(texto, termo):
-    padrao = r'\b' + re.escape(normalizar(termo)) + r'\b'
-    return re.search(padrao, texto) is not None
+    txt = unicodedata.normalize("NFKD", txt)
+    txt = txt.encode("ASCII", "ignore").decode("ASCII")
+    txt = re.sub(r"\s+", " ", txt)
+    return txt.upper().strip()
 
 
 def carregar_processados():
     if not os.path.exists(ARQUIVO_CONTROLE):
-        return set()
+        return {}
+    processados = {}
     with open(ARQUIVO_CONTROLE, "r") as f:
-        return set(l.strip() for l in f.readlines())
+        for linha in f:
+            linha = linha.strip()
+            if "|" in linha:
+                link, hash_pdf = linha.split("|")
+                processados[link] = hash_pdf
+    return processados
 
 
-def salvar_processado(link):
-    with open(ARQUIVO_CONTROLE, "a") as f:
-        f.write(link + "\n")
+def salvar_processado(link, hash_pdf):
+    processados = carregar_processados()
+    processados[link] = hash_pdf
+
+    with open(ARQUIVO_CONTROLE, "w") as f:
+        for l, h in processados.items():
+            f.write(f"{l}|{h}\n")
 
 
 def enviar_telegram(mensagem):
@@ -79,7 +89,8 @@ def enviar_telegram(mensagem):
     data = {
         "chat_id": TELEGRAM_CHAT_ID,
         "text": mensagem,
-        "parse_mode": "Markdown"
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True
     }
 
     try:
@@ -97,58 +108,74 @@ def buscar_links_pdf():
     soup = BeautifulSoup(response.text, 'html.parser')
 
     pdfs = []
-    links_vistos = set()
+    vistos = set()
 
     for a in soup.find_all('a', href=True):
         href = a['href']
         if '.pdf' in href.lower():
 
-            link_completo = href if href.startswith('http') else "https://noticias.sorocaba.sp.gov.br" + href
+            link = href if href.startswith('http') else \
+                "https://noticias.sorocaba.sp.gov.br" + href
 
-            if link_completo not in links_vistos:
-                pdfs.append((a.get_text().strip(), link_completo))
-                links_vistos.add(link_completo)
+            if link not in vistos:
+                pdfs.append((a.get_text(strip=True), link))
+                vistos.add(link)
 
     return pdfs
 
 
-def analisar_pdf(titulo, link_pdf):
+def analisar_pdf(titulo, link_pdf, processados):
     resultado = {
         "titulo": titulo,
         "link": link_pdf,
         "nome_encontrado": False,
-        "paginas_cargo": [],
+        "cargo_encontrado": False,
+        "trecho": None,
+        "hash": None,
         "erro": None
     }
 
     try:
         logging.info(f"Baixando PDF: {titulo}")
+        response = session.get(link_pdf, timeout=60)
+        response.raise_for_status()
 
-        pdf_res = session.get(link_pdf, timeout=60)
-        pdf_res.raise_for_status()
+        hash_pdf = hashlib.md5(response.content).hexdigest()
+        resultado["hash"] = hash_pdf
 
-        with pdfplumber.open(io.BytesIO(pdf_res.content)) as pdf:
-            for i, pagina in enumerate(pdf.pages, 1):
+        # Se já processado com mesmo hash, ignora
+        if link_pdf in processados and processados[link_pdf] == hash_pdf:
+            logging.info("PDF já processado e não alterado.")
+            return None
+
+        nome_norm = normalizar(NOME_BUSCA)
+        cargo_norm = normalizar(CARGO_BUSCA)
+
+        with pdfplumber.open(io.BytesIO(response.content)) as pdf:
+            for pagina in pdf.pages:
                 texto = pagina.extract_text()
                 texto_norm = normalizar(texto)
 
                 if not texto_norm:
                     continue
 
-                # Prioridade 1: Nome
-                if contem_palavra(texto_norm, NOME_BUSCA):
+                # PRIORIDADE 1: NOME
+                if nome_norm in texto_norm:
                     resultado["nome_encontrado"] = True
+
+                    idx = texto_norm.find(nome_norm)
+                    resultado["trecho"] = texto_norm[max(0, idx-120):idx+120]
                     break
 
-                # Prioridade 2: Cargo
-                if contem_palavra(texto_norm, CARGO_BUSCA):
-                    resultado["paginas_cargo"].append(i)
-                    break  # para leitura antecipada
+                # PRIORIDADE 2: CARGO
+                if cargo_norm in texto_norm:
+                    resultado["cargo_encontrado"] = True
+
+        return resultado
 
     except Exception as e:
         resultado["erro"] = str(e)
-
-    return resultado
+        return resultado
 
 
 def buscar_diario():
@@ -160,55 +187,51 @@ def buscar_diario():
             return
 
         processados = carregar_processados()
-        novos_pdfs = [(t, l) for t, l in pdfs if l not in processados]
+        alertas = []
 
-        if not novos_pdfs:
-            logging.info("Nenhum PDF novo encontrado.")
-            return
+        for titulo, link in pdfs:
 
-        relatorio = []
-        relatorio.append(
-            f"🔍 *Vigilante Sorocaba*\n"
-            f"📅 {datetime.now().strftime('%d/%m/%Y')}\n"
-            f"📂 PDFs novos encontrados: {len(novos_pdfs)}\n"
-        )
+            resultado = analisar_pdf(titulo, link, processados)
 
-        for titulo, link_pdf in novos_pdfs:
-
-            resultado = analisar_pdf(titulo, link_pdf)
-
-            relatorio.append(f"\n📄 `{titulo}`")
-
-            if resultado["erro"]:
-                relatorio.append(f"❌ Erro: `{resultado['erro']}`")
+            if resultado is None:
                 continue
 
+            if resultado["erro"]:
+                logging.error(resultado["erro"])
+                continue
+
+            salvar_processado(link, resultado["hash"])
+
             if resultado["nome_encontrado"]:
-                relatorio.append("🚨 *NOME ENCONTRADO!*")
-                relatorio.append(f"🔗 {link_pdf}")
+                alerta = (
+                    f"🚨 <b>NOME ENCONTRADO!</b>\n"
+                    f"<b>{titulo}</b>\n"
+                    f"<a href=\"{link}\">Abrir PDF</a>\n\n"
+                    f"<code>{resultado['trecho']}</code>"
+                )
+                alertas.append(alerta)
 
-            elif resultado["paginas_cargo"]:
-                paginas = ", ".join(map(str, resultado["paginas_cargo"]))
-                relatorio.append(f"🔔 Cargo encontrado na(s) página(s): {paginas}")
-                relatorio.append(f"🔗 {link_pdf}")
+            elif resultado["cargo_encontrado"]:
+                alerta = (
+                    f"🔔 Cargo encontrado\n"
+                    f"<b>{titulo}</b>\n"
+                    f"<a href=\"{link}\">Abrir PDF</a>"
+                )
+                alertas.append(alerta)
 
-            else:
-                relatorio.append("✅ Nada encontrado.")
-
-            salvar_processado(link_pdf)
-
-        relatorio.append("\n🏁 Varredura concluída.")
-
-        mensagem_final = "\n".join(relatorio)
-
-        if len(mensagem_final) > 4000:
-            mensagem_final = mensagem_final[:3900] + "\n\n(Conteúdo truncado...)"
-
-        enviar_telegram(mensagem_final)
+        if alertas:
+            mensagem = (
+                f"🔍 <b>Vigilante Sorocaba</b>\n"
+                f"📅 {datetime.now().strftime('%d/%m/%Y')}\n\n"
+                + "\n\n".join(alertas)
+            )
+            enviar_telegram(mensagem)
+        else:
+            logging.info("Nenhuma ocorrência encontrada.")
 
     except Exception as e:
-        enviar_telegram(f"❌ Erro geral: `{str(e)}`")
         logging.error(f"Erro geral: {e}")
+        enviar_telegram(f"❌ Erro geral:\n<code>{str(e)}</code>")
 
 
 if __name__ == "__main__":
