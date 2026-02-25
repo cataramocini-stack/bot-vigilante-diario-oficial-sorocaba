@@ -8,8 +8,10 @@ import unicodedata
 import re
 import logging
 import hashlib
+import urllib3
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from requests.exceptions import SSLError
 
 # ================= CONFIG =================
 
@@ -53,6 +55,18 @@ retry_strategy = Retry(
 adapter = HTTPAdapter(max_retries=retry_strategy)
 session.mount("https://", adapter)
 session.mount("http://", adapter)
+
+
+# ================= SSL INTELIGENTE =================
+
+def safe_get(url, timeout=40):
+    try:
+        return session.get(url, timeout=timeout)
+    except SSLError:
+        logging.warning(f"SSL falhou para {url}. Tentando novamente sem verificação.")
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        return session.get(url, timeout=timeout, verify=False)
+
 
 # ================= UTIL =================
 
@@ -132,10 +146,10 @@ def salvar_processado(link, hash_pdf):
             f.write(f"{l}|{h}\n")
 
 
-# ================= BUSCA PDFs (BLINDADO) =================
+# ================= BUSCA PDFs =================
 
 def buscar_links_pdf():
-    response = session.get(URL_SOROCABA, timeout=40)
+    response = safe_get(URL_SOROCABA, timeout=40)
     response.raise_for_status()
 
     html = response.text
@@ -144,24 +158,20 @@ def buscar_links_pdf():
     pdfs = []
     vistos = set()
 
-    # MÉTODO PRINCIPAL (HTML normal)
+    # Método principal
     for a in soup.find_all('a', href=True):
         href = a['href']
         if '.pdf' in href.lower():
-
             link = href if href.startswith('http') else BASE_URL + href
-
             if link not in vistos:
                 titulo = a.get_text(strip=True) or "Diário Oficial"
                 pdfs.append((titulo, link))
                 vistos.add(link)
 
-    # FALLBACK se layout mudar
+    # Fallback regex
     if not pdfs:
-        logging.warning("Nenhum PDF encontrado via HTML. Tentando fallback regex...")
-
+        logging.warning("Nenhum PDF via HTML. Tentando fallback regex...")
         matches = re.findall(r'https?://[^\s"]+\.pdf', html, re.IGNORECASE)
-
         for link in matches:
             if link not in vistos:
                 pdfs.append(("Diário Oficial (fallback)", link))
@@ -188,13 +198,12 @@ def analisar_pdf(titulo, link_pdf, processados):
 
     try:
         logging.info(f"Baixando PDF: {titulo}")
-        response = session.get(link_pdf, timeout=60)
+        response = safe_get(link_pdf, timeout=60)
         response.raise_for_status()
 
         hash_pdf = hashlib.md5(response.content).hexdigest()
         resultado["hash"] = hash_pdf
 
-        # Ignorar se já processado e igual
         if link_pdf in processados and processados[link_pdf] == hash_pdf:
             logging.info("PDF já processado e não alterado.")
             return None
@@ -210,14 +219,12 @@ def analisar_pdf(titulo, link_pdf, processados):
                 if not texto_norm:
                     continue
 
-                # PRIORIDADE 1: NOME
                 if nome_norm in texto_norm:
                     resultado["nome_encontrado"] = True
                     idx = texto_norm.find(nome_norm)
                     resultado["trecho"] = texto_norm[max(0, idx-120):idx+120]
                     break
 
-                # PRIORIDADE 2: CARGO
                 if cargo_norm in texto_norm:
                     resultado["cargo_encontrado"] = True
 
