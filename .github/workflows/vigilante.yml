@@ -2,34 +2,33 @@ name: Vigilante Diário Oficial Sorocaba
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Roda às 21:00 (horário de Brasília = 00:00 UTC)
-  workflow_dispatch:      # Permite rodar manualmente
+    - cron: '0 0 * * *'  # 00:00 UTC = 21:00 Brasil
+  workflow_dispatch:
 
 jobs:
   vigilante:
     runs-on: ubuntu-latest
-    
-    # Permissões necessárias para o Action conseguir dar "push" no arquivo de texto
+
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          persist-credentials: true # Mantém as credenciais para o push final
-        
+          persist-credentials: true
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-          cache: 'pip' # Otimiza as próximas execuções
-          
+          cache: 'pip'
+
       - name: Instalar dependências
         run: |
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4 pdfplumber
-        
+
       - name: Executar vigilante
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
@@ -42,9 +41,20 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          # Só adiciona o arquivo se ele existir e tiver sido alterado
+
+          # Adiciona arquivos se existirem
           if [ -f pdfs_processados.txt ]; then
             git add pdfs_processados.txt
-            git commit -m "Update: Histórico de PDFs processados [skip ci]" || echo "Sem mudanças para salvar"
+          fi
+
+          if [ -f heartbeat.txt ]; then
+            git add heartbeat.txt
+          fi
+
+          # Só faz commit se houver mudanças
+          if git diff --cached --quiet; then
+            echo "Sem mudanças para salvar"
+          else
+            git commit -m "Update: progresso vigilante [skip ci]"
             git push
           fi
