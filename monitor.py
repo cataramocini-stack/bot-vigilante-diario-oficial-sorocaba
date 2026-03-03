@@ -246,6 +246,7 @@ def buscar_diario():
         processados = carregar_processados()
 
         alertas = []
+        novos_pdfs_sem_match = []
 
         for titulo, link in pdfs:
 
@@ -282,11 +283,29 @@ def buscar_diario():
                 )
                 alertas.append(alerta)
 
+            else:
+                novos_pdfs_sem_match.append((titulo, link))
+
         if alertas:
             mensagem = (
                 f"🔍 <b>Vigilante Sorocaba</b>\n"
                 f"📅 {datetime.now().strftime('%d/%m/%Y')}\n\n"
                 + "\n\n".join(alertas)
+            )
+            enviar_telegram(mensagem)
+
+        elif novos_pdfs_sem_match:
+            lista = "\n".join(
+                f"• <a href=\"{link}\">{titulo}</a>"
+                for titulo, link in novos_pdfs_sem_match[:10]
+            )
+
+            mensagem = (
+                f"📰 <b>Novos PDFs sem correspondência</b>\n"
+                f"📅 {datetime.now().strftime('%d/%m/%Y')}\n\n"
+                f"Foram analisados {len(novos_pdfs_sem_match)} novo(s) PDF(s), mas sem encontrar "
+                f"o nome/cargo monitorado.\n\n"
+                f"{lista}"
             )
             enviar_telegram(mensagem)
 
