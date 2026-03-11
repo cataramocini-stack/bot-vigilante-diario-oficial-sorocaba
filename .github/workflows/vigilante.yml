@@ -2,59 +2,59 @@ name: Vigilante Diário Oficial Sorocaba
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 00:00 UTC = 21:00 Brasil
-  workflow_dispatch:
+    - cron: '0 0 * * *'        # 00:00 UTC = 21:00 horário de Brasília
+  workflow_dispatch:           # permite rodar manualmente
 
 jobs:
   vigilante:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
+      contents: write           # necessário para commit/push
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           persist-credentials: true
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.11'          # Atualizado para suportar type hints modernos
           cache: 'pip'
 
       - name: Instalar dependências
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 pdfplumber
+          pip install \
+            requests \
+            beautifulsoup4 \
+            pdfplumber
 
       - name: Executar vigilante
         env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          NOME_BUSCA: ${{ secrets.NOME_BUSCA }}
-          CARGO_BUSCA: ${{ secrets.CARGO_BUSCA }}
+          TELEGRAM_TOKEN:     ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          NOME_BUSCA:         ${{ secrets.NOME_BUSCA }}
+          CARGO_BUSCA:        ${{ secrets.CARGO_BUSCA }}
+          # Opcional - descomente e ajuste se quiser limitar
+          # MAX_PDFS_POR_EXEC:  "8"
+          # HEARTBEAT_ALERT_H:  "36"
         run: python monitor.py
 
-      - name: Salvar progresso (Commit e Push)
+      - name: Commit & Push progresso (se houver alterações)
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config --local user.name  "github-actions[bot]"
 
-          # Adiciona arquivos se existirem
-          if [ -f pdfs_processados.txt ]; then
-            git add pdfs_processados.txt
-          fi
+          # Adiciona apenas os arquivos que existem
+          git add -- pdfs_processados.txt heartbeat.txt 2>/dev/null || true
 
-          if [ -f heartbeat.txt ]; then
-            git add heartbeat.txt
-          fi
-
-          # Só faz commit se houver mudanças
+          # Verifica se há algo para commitar
           if git diff --cached --quiet; then
-            echo "Sem mudanças para salvar"
+            echo "Nenhuma alteração para commitar"
           else
-            git commit -m "Update: progresso vigilante [skip ci]"
+            git commit -m "chore: atualiza progresso do vigilante $(date '+%Y-%m-%d %H:%M')" --no-verify
             git push
           fi
