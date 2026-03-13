@@ -20,13 +20,13 @@ URL_SOROCABA = "https://noticias.sorocaba.sp.gov.br/jornal/"
 BASE_URL = "https://noticias.sorocaba.sp.gov.br"
 
 ARQUIVO_CONTROLE = "pdfs_processados.txt"
-ARQUIVO_HEARTBEAT = "heartbeat.txt"
 ARQUIVO_CONTROLE_BAK = "pdfs_processados.bak"
+ARQUIVO_HEARTBEAT = "heartbeat.txt"
 
-TELEGRAM_TOKEN    = os.getenv("TELEGRAM_TOKEN")
-TELEGRAM_CHAT_ID  = os.getenv("TELEGRAM_CHAT_ID")
-NOME_BUSCA        = os.getenv("NOME_BUSCA")
-CARGO_BUSCA       = os.getenv("CARGO_BUSCA")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+NOME_BUSCA = os.getenv("NOME_BUSCA")
+CARGO_BUSCA = os.getenv("CARGO_BUSCA")
 
 MAX_PDFS_POR_EXEC = int(os.getenv("MAX_PDFS_POR_EXEC", "8"))
 HEARTBEAT_ALERT_H = int(os.getenv("HEARTBEAT_ALERT_H", "48"))
@@ -41,13 +41,17 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)-7s | %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
+
 logger = logging.getLogger(__name__)
 
 # ================= SESSION =================
 
 session = requests.Session()
+
 session.headers.update({
-    "User-Agent": "Mozilla/5.0"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/128.0 Safari/537.36"
 })
 
 retry_strategy = Retry(
@@ -58,22 +62,28 @@ retry_strategy = Retry(
 )
 
 adapter = HTTPAdapter(max_retries=retry_strategy)
+
 session.mount("http://",adapter)
 session.mount("https://",adapter)
 
 # ================= UTIL =================
 
 def normalizar(texto:str)->str:
+
     if not texto:
         return ""
+
     texto = unicodedata.normalize("NFKD", texto)
     texto = texto.encode("ascii","ignore").decode("ascii")
     texto = re.sub(r"\s+"," ",texto)
+
     return texto.upper().strip()
 
 
 def enviar_telegram(msg:str,parse_mode="HTML")->bool:
+
     try:
+
         url=f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
 
         r=session.post(url,data={
@@ -84,16 +94,31 @@ def enviar_telegram(msg:str,parse_mode="HTML")->bool:
         },timeout=15)
 
         r.raise_for_status()
+
         logger.info("Telegram enviado")
+
         return True
+
     except Exception as e:
-        logger.error(f"Falha telegram: {e}")
+
+        logger.error(f"Falha Telegram: {e}")
+
         return False
 
 
+# ================= HEARTBEAT =================
+
 def atualizar_heartbeat():
-    with open(ARQUIVO_HEARTBEAT,"w") as f:
-        f.write(datetime.now().isoformat())
+
+    try:
+
+        with open(ARQUIVO_HEARTBEAT,"w",encoding="utf-8") as f:
+
+            f.write(datetime.now().isoformat())
+
+    except Exception as e:
+
+        logger.error(f"Erro ao atualizar heartbeat: {e}")
 
 
 def verificar_heartbeat():
@@ -103,7 +128,8 @@ def verificar_heartbeat():
 
     try:
 
-        with open(ARQUIVO_HEARTBEAT) as f:
+        with open(ARQUIVO_HEARTBEAT,"r",encoding="utf-8") as f:
+
             ultima=datetime.fromisoformat(f.read().strip())
 
         delta=datetime.now()-ultima
@@ -116,17 +142,13 @@ def verificar_heartbeat():
             )
 
     except Exception as e:
+
         logger.warning(f"Erro heartbeat: {e}")
 
 
-# ================= CONTROLE ROBUSTO =================
+# ================= CONTROLE DE PDFs =================
 
 def carregar_processados():
-
-    """
-    Novo formato:
-    hash|tamanho|url
-    """
 
     registros={}
     hashes=set()
@@ -154,12 +176,13 @@ def carregar_processados():
                     hashes.add(h)
 
                 elif len(partes)==2:
-                    # compatibilidade antiga
+
                     url,h=partes
                     registros[url]=(h,"?")
                     hashes.add(h)
 
     except Exception as e:
+
         logger.error(f"Erro lendo controle: {e}")
 
     return registros,hashes
@@ -170,6 +193,7 @@ def salvar_processado(url,hash_val,tamanho):
     try:
 
         if os.path.exists(ARQUIVO_CONTROLE):
+
             os.replace(ARQUIVO_CONTROLE,ARQUIVO_CONTROLE_BAK)
 
         registros,_=carregar_processados()
@@ -179,11 +203,13 @@ def salvar_processado(url,hash_val,tamanho):
         with open(ARQUIVO_CONTROLE,"w",encoding="utf-8") as f:
 
             for u,(h,s) in registros.items():
+
                 f.write(f"{h}|{s}|{u}\n")
 
         logger.info("Controle atualizado")
 
     except Exception as e:
+
         logger.error(f"Erro salvando controle: {e}")
 
 
@@ -192,6 +218,7 @@ def salvar_processado(url,hash_val,tamanho):
 def safe_get(url,timeout=40):
 
     try:
+
         return session.get(url,timeout=timeout)
 
     except SSLError:
@@ -201,7 +228,9 @@ def safe_get(url,timeout=40):
         return session.get(url,timeout=timeout,verify=False)
 
     except RequestException as e:
+
         logger.error(f"Falha HTTP {url}: {e}")
+
         raise
 
 
@@ -212,6 +241,7 @@ def buscar_links_pdf():
     logger.info("Coletando PDFs")
 
     resp=safe_get(URL_SOROCABA)
+
     resp.raise_for_status()
 
     soup=BeautifulSoup(resp.text,"html.parser")
@@ -240,6 +270,7 @@ def buscar_links_pdf():
         matches=re.findall(r'(https?://[^\s"\']+\.pdf)',resp.text,re.IGNORECASE)
 
         for m in matches:
+
             pdfs.append(("Diário Oficial",m))
 
     logger.info(f"{len(pdfs)} PDFs encontrados")
@@ -253,17 +284,22 @@ def analisar_pdf(titulo,url,registros,hashes):
 
     try:
 
+        start=time.time()
+
         resp=safe_get(url,90)
+
         resp.raise_for_status()
 
         conteudo=resp.content
+
         tamanho=len(conteudo)
 
         hash_sha=hashlib.sha256(conteudo).hexdigest()
 
-        # deduplicação robusta
         if hash_sha in hashes:
+
             logger.info("PDF já analisado (hash)")
+
             return None
 
         if url in registros:
@@ -271,7 +307,9 @@ def analisar_pdf(titulo,url,registros,hashes):
             h_antigo,_=registros[url]
 
             if h_antigo==hash_sha:
+
                 logger.info("PDF inalterado")
+
                 return None
 
         logger.info(f"Analisando {titulo} ({tamanho//1024}kb)")
@@ -284,6 +322,9 @@ def analisar_pdf(titulo,url,registros,hashes):
         trecho=None
 
         with pdfplumber.open(io.BytesIO(conteudo)) as pdf:
+
+            if len(pdf.pages)==0:
+                raise ValueError("PDF vazio")
 
             for pagina in pdf.pages:
 
@@ -301,7 +342,10 @@ def analisar_pdf(titulo,url,registros,hashes):
                     break
 
                 if cargo_norm and cargo_norm in texto_norm:
+
                     cargo_encontrado=True
+
+        logger.info(f"Tempo análise: {time.time()-start:.1f}s")
 
         return {
             "titulo":titulo,
@@ -330,74 +374,90 @@ def main():
 
     verificar_heartbeat()
 
-    registros,hashes=carregar_processados()
+    try:
 
-    pdfs=buscar_links_pdf()
+        registros,hashes=carregar_processados()
 
-    alertas=[]
-    sem_match=[]
+        pdfs=buscar_links_pdf()
 
-    for titulo,link in pdfs:
+        alertas=[]
+        sem_match=[]
 
-        res=analisar_pdf(titulo,link,registros,hashes)
+        for i,(titulo,link) in enumerate(pdfs,1):
 
-        if res is None:
-            continue
+            logger.info(f"[{i}/{len(pdfs)}] {titulo}")
 
-        if res.get("erro"):
+            res=analisar_pdf(titulo,link,registros,hashes)
+
+            if res is None:
+                continue
+
+            if res.get("erro"):
+
+                enviar_telegram(
+                    f"❌ <b>Erro no PDF</b>\n"
+                    f"{titulo}\n"
+                    f"<code>{res['erro']}</code>"
+                )
+
+                continue
+
+            salvar_processado(link,res["hash"],res["tamanho"])
+
+            if res["nome"]:
+
+                alertas.append(
+                    f"🚨 <b>NOME ENCONTRADO</b>\n"
+                    f"{titulo}\n"
+                    f"<a href=\"{link}\">Abrir PDF</a>\n\n"
+                    f"<code>{res['trecho']}</code>"
+                )
+
+            elif res["cargo"]:
+
+                alertas.append(
+                    f"🔔 <b>CARGO ENCONTRADO</b>\n"
+                    f"{titulo}\n"
+                    f"<a href=\"{link}\">Abrir PDF</a>"
+                )
+
+            else:
+
+                sem_match.append((titulo,link))
+
+            time.sleep(1.6)
+
+        hoje=datetime.now().strftime("%d/%m/%Y %H:%M")
+
+        if alertas:
 
             enviar_telegram(
-                f"❌ <b>Erro no PDF</b>\n"
-                f"{titulo}\n"
-                f"<code>{res['erro']}</code>"
-            )
-            continue
-
-        salvar_processado(link,res["hash"],res["tamanho"])
-
-        if res["nome"]:
-
-            alertas.append(
-                f"🚨 <b>NOME ENCONTRADO</b>\n"
-                f"{titulo}\n"
-                f"<a href=\"{link}\">Abrir PDF</a>\n\n"
-                f"<code>{res['trecho']}</code>"
+                f"🔍 <b>VIGILANTE SOROCABA</b> — {hoje}\n\n"
+                +"\n\n".join(alertas)
             )
 
-        elif res["cargo"]:
+        elif sem_match:
 
-            alertas.append(
-                f"🔔 <b>CARGO ENCONTRADO</b>\n"
-                f"{titulo}\n"
-                f"<a href=\"{link}\">Abrir PDF</a>"
+            lista="\n".join(f"• <a href=\"{l}\">{t}</a>" for t,l in sem_match)
+
+            enviar_telegram(
+                f"📰 <b>Diários analisados</b>\n\n{lista}"
             )
 
-        else:
+        atualizar_heartbeat()
 
-            sem_match.append((titulo,link))
+        logger.info("Execução concluída")
 
-        time.sleep(1.5)
+    except Exception as e:
 
-    hoje=datetime.now().strftime("%d/%m/%Y %H:%M")
-
-    if alertas:
+        logger.exception("Erro crítico")
 
         enviar_telegram(
-            f"🔍 <b>VIGILANTE SOROCABA</b> — {hoje}\n\n"
-            +"\n\n".join(alertas)
+            f"❌ <b>ERRO CRÍTICO</b>\n"
+            f"<code>{str(e)}</code>"
         )
 
-    elif sem_match:
-
-        lista="\n".join(f"• <a href=\"{l}\">{t}</a>" for t,l in sem_match)
-
-        enviar_telegram(
-            f"📰 <b>Diários analisados</b>\n\n{lista}"
-        )
-
-    atualizar_heartbeat()
-
-    logger.info("Execução concluída")
+        raise
 
 
 if __name__=="__main__":
