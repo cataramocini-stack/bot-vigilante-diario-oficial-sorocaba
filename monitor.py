@@ -10,6 +10,7 @@ import re
 import logging
 import hashlib
 import urllib3
+from functools import lru_cache
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from requests.exceptions import SSLError, RequestException
@@ -31,6 +32,11 @@ CARGO_BUSCA = os.getenv("CARGO_BUSCA")
 MAX_PDFS_POR_EXEC = int(os.getenv("MAX_PDFS_POR_EXEC", "8"))
 HEARTBEAT_ALERT_H = int(os.getenv("HEARTBEAT_ALERT_H", "48"))
 
+MAX_PDF_MB = int(os.getenv("MAX_PDF_MB", "25"))
+MAX_PAGES_ANALISAR = int(os.getenv("MAX_PAGES_ANALISAR", "80"))
+
+HEAD_TIMEOUT = 20
+
 if not all([TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, NOME_BUSCA, CARGO_BUSCA]):
     raise ValueError("Variáveis de ambiente obrigatórias não configuradas.")
 
@@ -49,16 +55,14 @@ logger = logging.getLogger(__name__)
 session = requests.Session()
 
 session.headers.update({
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) "
-                  "Chrome/128.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128.0 Safari/537.36"
 })
 
 retry_strategy = Retry(
     total=5,
     backoff_factor=1.5,
     status_forcelist=[429,500,502,503,504],
-    allowed_methods=["GET","POST"]
+    allowed_methods=["GET","POST","HEAD"]
 )
 
 adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -68,22 +72,18 @@ session.mount("https://",adapter)
 
 # ================= UTIL =================
 
+@lru_cache(maxsize=2048)
 def normalizar(texto:str)->str:
-
     if not texto:
         return ""
-
     texto = unicodedata.normalize("NFKD", texto)
     texto = texto.encode("ascii","ignore").decode("ascii")
     texto = re.sub(r"\s+"," ",texto)
-
     return texto.upper().strip()
 
 
 def enviar_telegram(msg:str,parse_mode="HTML")->bool:
-
     try:
-
         url=f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
 
         r=session.post(url,data={
@@ -100,53 +100,41 @@ def enviar_telegram(msg:str,parse_mode="HTML")->bool:
         return True
 
     except Exception as e:
-
         logger.error(f"Falha Telegram: {e}")
-
         return False
 
 
 # ================= HEARTBEAT =================
 
 def atualizar_heartbeat():
-
     try:
-
         with open(ARQUIVO_HEARTBEAT,"w",encoding="utf-8") as f:
-
             f.write(datetime.now().isoformat())
-
     except Exception as e:
-
         logger.error(f"Erro ao atualizar heartbeat: {e}")
 
 
 def verificar_heartbeat():
-
     if not os.path.exists(ARQUIVO_HEARTBEAT):
         return
 
     try:
-
         with open(ARQUIVO_HEARTBEAT,"r",encoding="utf-8") as f:
-
             ultima=datetime.fromisoformat(f.read().strip())
 
         delta=datetime.now()-ultima
 
         if delta.total_seconds()>HEARTBEAT_ALERT_H*3600:
-
             enviar_telegram(
                 f"⚠️ <b>ALERTA DE INATIVIDADE</b>\n"
                 f"Última execução: {ultima.strftime('%d/%m/%Y %H:%M')}"
             )
 
     except Exception as e:
-
         logger.warning(f"Erro heartbeat: {e}")
 
 
-# ================= CONTROLE DE PDFs =================
+# ================= CONTROLE =================
 
 def carregar_processados():
 
@@ -157,32 +145,27 @@ def carregar_processados():
         return registros,hashes
 
     try:
-
         with open(ARQUIVO_CONTROLE,"r",encoding="utf-8") as f:
 
             for linha in f:
 
                 linha=linha.strip()
-
                 if not linha:
                     continue
 
                 partes=linha.split("|")
 
-                if len(partes)==3:
+                if len(partes)>=3:
 
-                    h,size,url=partes
+                    h=partes[0]
+                    size=partes[1]
+                    url=partes[2]
+
                     registros[url]=(h,size)
-                    hashes.add(h)
 
-                elif len(partes)==2:
-
-                    url,h=partes
-                    registros[url]=(h,"?")
                     hashes.add(h)
 
     except Exception as e:
-
         logger.error(f"Erro lendo controle: {e}")
 
     return registros,hashes
@@ -193,7 +176,6 @@ def salvar_processado(url,hash_val,tamanho):
     try:
 
         if os.path.exists(ARQUIVO_CONTROLE):
-
             os.replace(ARQUIVO_CONTROLE,ARQUIVO_CONTROLE_BAK)
 
         registros,_=carregar_processados()
@@ -203,13 +185,11 @@ def salvar_processado(url,hash_val,tamanho):
         with open(ARQUIVO_CONTROLE,"w",encoding="utf-8") as f:
 
             for u,(h,s) in registros.items():
-
                 f.write(f"{h}|{s}|{u}\n")
 
         logger.info("Controle atualizado")
 
     except Exception as e:
-
         logger.error(f"Erro salvando controle: {e}")
 
 
@@ -218,7 +198,6 @@ def salvar_processado(url,hash_val,tamanho):
 def safe_get(url,timeout=40):
 
     try:
-
         return session.get(url,timeout=timeout)
 
     except SSLError:
@@ -232,6 +211,14 @@ def safe_get(url,timeout=40):
         logger.error(f"Falha HTTP {url}: {e}")
 
         raise
+
+
+def safe_head(url):
+
+    try:
+        return session.head(url,timeout=HEAD_TIMEOUT,allow_redirects=True)
+    except Exception:
+        return None
 
 
 # ================= COLETA =================
@@ -270,7 +257,6 @@ def buscar_links_pdf():
         matches=re.findall(r'(https?://[^\s"\']+\.pdf)',resp.text,re.IGNORECASE)
 
         for m in matches:
-
             pdfs.append(("Diário Oficial",m))
 
     logger.info(f"{len(pdfs)} PDFs encontrados")
@@ -286,6 +272,24 @@ def analisar_pdf(titulo,url,registros,hashes):
 
         start=time.time()
 
+        head=safe_head(url)
+
+        if head:
+
+            content_type=head.headers.get("Content-Type","")
+
+            if "pdf" not in content_type.lower():
+                logger.warning("Arquivo não parece ser PDF")
+
+            tamanho_header=head.headers.get("Content-Length")
+
+            if tamanho_header:
+
+                tamanho_header=int(tamanho_header)
+
+                if tamanho_header > MAX_PDF_MB*1024*1024:
+                    raise ValueError("PDF muito grande (header)")
+
         resp=safe_get(url,90)
 
         resp.raise_for_status()
@@ -293,6 +297,9 @@ def analisar_pdf(titulo,url,registros,hashes):
         conteudo=resp.content
 
         tamanho=len(conteudo)
+
+        if tamanho > MAX_PDF_MB*1024*1024:
+            raise ValueError("PDF muito grande")
 
         hash_sha=hashlib.sha256(conteudo).hexdigest()
 
@@ -326,9 +333,14 @@ def analisar_pdf(titulo,url,registros,hashes):
             if len(pdf.pages)==0:
                 raise ValueError("PDF vazio")
 
-            for pagina in pdf.pages:
+            limite=min(len(pdf.pages),MAX_PAGES_ANALISAR)
+
+            for i in range(limite):
+
+                pagina=pdf.pages[i]
 
                 texto=pagina.extract_text() or ""
+
                 texto_norm=normalizar(texto)
 
                 if nome_norm and nome_norm in texto_norm:
