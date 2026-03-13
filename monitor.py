@@ -63,8 +63,6 @@ session.headers.update({
     "Sec-Fetch-User": "?1",
     "Upgrade-Insecure-Requests": "1",
     "Connection": "keep-alive",
-    # "DNT": "1",                  # opcional, mas alguns sites usam pra fingerprint
-    # "Priority": "u=0, i",        # Chrome moderno manda isso em 2026 (prioridade alta)
 })
 
 # ================= UTIL =================
@@ -191,8 +189,8 @@ def analisar_pdf(titulo, url, registros, hashes):
             if nome_norm and nome_norm in texto_norm:
                 nome = True
                 idx = texto_norm.find(nome_norm)
-                trecho = texto_norm[max(0, idx-120):idx+120]
-                break  # pode remover o break se quiser continuar procurando cargo também
+                trecho = texto[max(0, idx-120):idx+120]
+                break
 
             if cargo_norm and cargo_norm in texto_norm:
                 cargo = True
@@ -209,26 +207,29 @@ def analisar_pdf(titulo, url, registros, hashes):
             "trecho": trecho
         }
 
-        # Envia mensagem sempre que leu um PDF novo
+        # ================= MENSAGEM TELEGRAM =================
         if nome:
             msg = (
                 f"🚨 <b>NOME ENCONTRADO</b>\n"
-                f"{titulo}\n"
-                f"<a href=\"{url}\">Abrir PDF</a>\n\n"
-                f"<code>{trecho or 'trecho não capturado'}</code>"
+                f"<b>Título:</b> {titulo}\n"
+                f"<b>Link:</b> <a href=\"{url}\">Abrir PDF</a>\n"
+                f"<b>Tamanho:</b> {round(tamanho/1024,2)} KB\n"
+                f"<b>Trecho:</b>\n<code>{trecho or 'trecho não capturado'}</code>"
             )
         elif cargo:
             msg = (
                 f"🔔 <b>CARGO ENCONTRADO</b>\n"
-                f"{titulo}\n"
-                f"<a href=\"{url}\">Abrir PDF</a>"
+                f"<b>Título:</b> {titulo}\n"
+                f"<b>Link:</b> <a href=\"{url}\">Abrir PDF</a>\n"
+                f"<b>Tamanho:</b> {round(tamanho/1024,2)} KB"
             )
         else:
             msg = (
                 f"📄 <b>PDF analisado</b>\n"
-                f"{titulo}\n"
-                f"Não encontrado: nome nem cargo\n"
-                f"<a href=\"{url}\">Abrir PDF</a>"
+                f"<b>Título:</b> {titulo}\n"
+                f"<b>Link:</b> <a href=\"{url}\">Abrir PDF</a>\n"
+                f"<b>Tamanho:</b> {round(tamanho/1024,2)} KB\n"
+                f"Resultado: nome e cargo não encontrados."
             )
 
         telegram(msg)
@@ -238,9 +239,9 @@ def analisar_pdf(titulo, url, registros, hashes):
     except Exception as e:
         err_msg = (
             f"❌ <b>Erro ao processar PDF</b>\n"
-            f"{titulo}\n"
-            f"<a href=\"{url}\">Link do PDF</a>\n"
-            f"<code>{str(e)}</code>"
+            f"<b>Título:</b> {titulo}\n"
+            f"<b>Link:</b> <a href=\"{url}\">Abrir PDF</a>\n"
+            f"<b>Erro:</b> <code>{str(e)}</code>"
         )
         telegram(err_msg)
         return {"erro": str(e), "titulo": titulo, "url": url}
