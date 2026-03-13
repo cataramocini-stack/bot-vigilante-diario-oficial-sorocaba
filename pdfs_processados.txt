@@ -1,8 +1,1 @@
-dcf9074e015ca1aff206364a4ca3af06e6940e6637c9a1b6b652c4bca6cd16bf|2325141|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3907-05-DE-MARCO-DE-2026-reserva.pdf
-cc624cf04b6ad58da8100bb3035743cac42073da5c337c29b2b8619fad83f9d5|4467239|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3912-12-DE-MARCO-DE-2026.pdf
-005408a7593773674ae20bb0507c0c462ed9cc79855060e742a2333d24001f47|228359|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3908-06-DE-MARCO-DE-2026-2025_RELATORIO-RESUMIDO-DA-EXECUCAO-ORCAMENTARIA_6obimestre.pdf
-077f2dcb50e02f5ad7de3903e5564dc40506226783c130abfb053ec8772a91d0|648911|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3912-12-DE-MARCO-DE-2026-Edital-de-Abertura-Concurso-Publico-no-001_2026-Funserv.pdf
-2d7dc3b698b6146af336588943d4c228ce717021fdbfbf556a8fb42cfc681884|2525385|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3910-10-DE-MARCO-DE-2026-1.pdf
-8427b7aa1d796d7ff5e76577bfa8f5056fa864d0bf37786c6b373b4655527218|2250819|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3909-09-DE-MARCO-DE-2026-1.pdf
-65b9cfbec489ee45b2febc7c5fc1049dfb89d4c9c891a8dcf6b0fe9db3b88e70|3501410|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3911-11-DE-MARCO-DE-2026.pdf
-b80fc30f40189efc68db1d4043ba00fba43d273103ecadd7be2c608aa5f64acb|3775460|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3908-06-DE-MARCO-DE-2026.pdf
+
