@@ -3,14 +3,14 @@ name: Vigilante Diário Oficial Sorocaba
 on:
   schedule:
     - cron: '0 0 * * *'        # 00:00 UTC = 21:00 horário de Brasília
-  workflow_dispatch:           # permite rodar manualmente
+  workflow_dispatch:
 
 jobs:
   vigilante:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write           # necessário para commit/push
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -21,7 +21,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'          # Atualizado para suportar type hints modernos
+          python-version: '3.11'
           cache: 'pip'
 
       - name: Instalar dependências
@@ -30,17 +30,14 @@ jobs:
           pip install \
             requests \
             beautifulsoup4 \
-            pdfplumber
+            pymupdf
 
       - name: Executar vigilante
         env:
-          TELEGRAM_TOKEN:     ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
-          NOME_BUSCA:         ${{ secrets.NOME_BUSCA }}
-          CARGO_BUSCA:        ${{ secrets.CARGO_BUSCA }}
-          # Opcional - descomente e ajuste se quiser limitar
-          # MAX_PDFS_POR_EXEC:  "8"
-          # HEARTBEAT_ALERT_H:  "36"
+          TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          NOME_BUSCA:       ${{ secrets.NOME_BUSCA }}
+          CARGO_BUSCA:      ${{ secrets.CARGO_BUSCA }}
         run: python monitor.py
 
       - name: Commit & Push progresso (se houver alterações)
@@ -48,10 +45,8 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name  "github-actions[bot]"
 
-          # Adiciona apenas os arquivos que existem
           git add -- pdfs_processados.txt heartbeat.txt 2>/dev/null || true
 
-          # Verifica se há algo para commitar
           if git diff --cached --quiet; then
             echo "Nenhuma alteração para commitar"
           else
