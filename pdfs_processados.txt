@@ -19,3 +19,11 @@ e212ef4544964c30b95e19668aaf378578739f2cbb781fd1bc311a6606cf71b2|2178135|https:/
 99d602fe347195e87bffaf68f04ac2a687162d006cb8811c76b2369be22e4cad|2597428|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3920-24-DE-MARCO-DE-2026.pdf
 3bc1e488708aaf45ae5228c62ceb31ea5771e08f1419446fba655e51703502b9|3203929|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3921-25-DE-MARCO-DE-2026.pdf
 5f7443c28ba4f4097a23d93cb75a503636f02ada1af0d40829359ccd60f10d13|969013|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3921-25-DE-MARCO-DE-2026-Edital-de-Justificativa-de-Inexigibilidade-de-Chamamento-Publico-Emenda-Parlamentar-Municipal.pdf
+4599d3d22f9ce2a273d9b0a8c80731533d6ca0fbbb47e36baa7e82e473477d50|3388459|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3922-26-DE-MARCO-DE-2026.pdf
+cd39fba1157d931da41e8953365988b8bd2910aa1298e4c43d55cc4329dc4fcc|1215702|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3922-26-DE-MARCO-DE-2026-Parecer-referencial-SEJ-no-1_2026-Termos-de-fomento-e-de-colaboracao-Lei-Federal-no-13.019-de-31-de-julho-de-2014.pdf
+73128b4acf8bd2c78c90ecfb42e4bcaab8737ce5de1a318dbe024caf7d2f48fd|2664638|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3922-26-DE-MARCO-DE-2026-Politica-Anual-de-Investimentos-Funserv.pdf
+b40bda749f0349044ef0fcad1c55ba194ab410c60e3388c4af35db7edf9d5c2f|2625048|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3922-26-DE-MARCO-DE-2026-Resolucao-Funserv-no-04.pdf
+f1acea13cf52dedeb532f8aa4d36ee4760540e97a2a1295b26777c05b1bb05ad|2791206|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3922-26-DE-MARCO-DE-2026-Escala-Unidades-Externas.pdf
+efb183aac1de8c7336166f0c31f405bb7bd55a940118dcb0ac44e23022c7bf73|6647519|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3922-26-DE-MARCO-DE-2026-Escala-Unidades-Basicas.pdf
+20f084ce74a3410b37abc20904374b5bd968b1cdb84e229824cf11b2d5a06868|11480435|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3922-26-DE-MARCO-DE-2026-Escala-Unidades-Basicas-Enfermagem.pdf
+993441851cd5c897374ae2cdb66f80ed598befe741e5e3fa149840285e408694|7341346|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3922-26-DE-MARCO-DE-2026-Escala-Urgencia-e-Emergencia.pdf
