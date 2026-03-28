@@ -27,3 +27,5 @@ f1acea13cf52dedeb532f8aa4d36ee4760540e97a2a1295b26777c05b1bb05ad|2791206|https:/
 efb183aac1de8c7336166f0c31f405bb7bd55a940118dcb0ac44e23022c7bf73|6647519|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3922-26-DE-MARCO-DE-2026-Escala-Unidades-Basicas.pdf
 20f084ce74a3410b37abc20904374b5bd968b1cdb84e229824cf11b2d5a06868|11480435|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3922-26-DE-MARCO-DE-2026-Escala-Unidades-Basicas-Enfermagem.pdf
 993441851cd5c897374ae2cdb66f80ed598befe741e5e3fa149840285e408694|7341346|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3922-26-DE-MARCO-DE-2026-Escala-Urgencia-e-Emergencia.pdf
+264b0706b3c2e0eea95860aec8e04e03c4027d78d7b5ba2270c9b880a8faaedd|176725|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3923-27-DE-MARCO-DE-2026-Relatorio-Resumido-da-Execucao-Orcamentaria-1o-Bimestre.pdf
+051e8df187fc629c86629d19686207cce10324e6eee16d48109da41db12e9345|2949573|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/03/3923-27-DE-MARCO-DE-2026.pdf
