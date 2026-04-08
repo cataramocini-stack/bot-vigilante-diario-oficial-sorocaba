@@ -39,3 +39,6 @@ ca288ea2788e74d00dc27f5fb46990efc87c634195fd5cef618c3ac8f39d3e39|3579287|https:/
 523e42def5d86f4a0a42f7915794f724cc71ea6f989040de1e501a150976ce2b|1033176|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3926-01-DE-ABRIL-DE-2026.pdf
 5a9aad5421bdc658bf77b71b3a9bd4ff3c511860a67cc20d37dd652dea22afdf|666128|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3927-06-DE-ABRIL-DE-2026-Analises-dos-Recursos-e-Resultado-Final-Processo-de-Remocao-Enfermeiros.pdf
 949f5d8c7a3ec3605dae282651112516474f6b046a2dba206cbacc2bf84176f2|3718701|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3927-06-DE-ABRIL-DE-2026.pdf
+6a88b709ef5fffae3956607f8060c078e011eaa8ad90b8a0ca5c35b8015ac981|2008016|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3928_-_07_DE_ABRIL_DE_2026_assinado.pdf
+9d9c9057923ce2aae2aebdaf96bbf4819e8ccddfcfe2faab7d9dcd2f1d4d0e33|423332|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/Revogacao-Resolucao-SEMOB.pdf
+9c4b531fd17889fefe999f4cdc6eb933f0b83b148596e37b053881a9933f3873|459449|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3928_-_07_DE_ABRIL_DE_2026_-_Comunicado_SEDU_SERH_nC2BA_012C_de_06_de_abril_de_2026_assinado.pdf
