@@ -44,3 +44,4 @@ ca288ea2788e74d00dc27f5fb46990efc87c634195fd5cef618c3ac8f39d3e39|3579287|https:/
 9c4b531fd17889fefe999f4cdc6eb933f0b83b148596e37b053881a9933f3873|459449|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3928_-_07_DE_ABRIL_DE_2026_-_Comunicado_SEDU_SERH_nC2BA_012C_de_06_de_abril_de_2026_assinado.pdf
 ecb9d06842698aeb3fbdccd1bcec35859141763372c1cb90b2d89738699f4c65|2233977|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3929-08-DE-ABRIL-DE-2026.pdf
 0dc3ef08f353d32fdbde1763c7e1ead0fa695184614425578343c1a0e8c2eabb|960920|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3929-08-DE-ABRIL-DE-2026-EDITAL-DE-NOTIFICACAO-NOVA-II-ERRATA-1.pdf
+daf6271ee5ac7d5db51bff2ba8984c30560543d5f8f296df68b3b51a8b37b64c|1468326|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3930-09-DE-ABRIL-DE-2026.pdf
