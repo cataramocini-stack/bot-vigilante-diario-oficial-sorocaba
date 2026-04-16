@@ -50,3 +50,5 @@ bde699e9a6de84c6d91d57b75cd7dac3ab4b9ba3c41115420677c0da2b9abc82|13310333|https:
 94a6914a2291a309209d284c0c435ee6aec78458226871968a09c867af8ab1b5|492150|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3933-14-DE-ABRIL-DE-2026-Deliberacao-SERH-no-01_2026-Chamamento-de-Candidatos-Aprovados-no-Concurso-Publico-GCM-01_2023.pdf
 ea45d779bdc4614f58d88e06c138f7f4d066ef189272d5ace6f819db9db1baad|331183|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3933-14-DE-ABRIL-DE-2026-Balancete-de-Despesa-e-Receita-Fevereiro_26.pdf
 e19ac5ac966603564099a05ca6a6fc3dc092d85e4be99cb9074c7f20ed075438|2965971|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3933-14-DE-ABRIL-DE-2026.pdf
+2a7df54df8c0fa9720bf1ad8a883ce514f189c72aada71d1b9c2c73f628012f5|3161176|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3934-15-DE-ABRIL-DE-2026.pdf
+b8e75d03b4d546d229169e038ff524cdc0f0f2185eaf0f7fc857b967df3073ae|6470490|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3934-15-DE-ABRIL-DE-2026-Retificacao-Chamamento-Publico-Edital_2026-–-Ciclo-02-Cultura.pdf
