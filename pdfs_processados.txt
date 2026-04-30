@@ -65,3 +65,5 @@ cb57f5efe9f1bb7460b8ebfa1aa152fd3de5afe9057e8ab357b17cbf2ec8614f|3422193|https:/
 192b6fcfd83119b14316768645baca6875a2bc2743eafa861b273e3fe725ac4a|65781|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/dec31053-2026.pdf
 e411b877ce76e2d95ec3915169ef750b7d1831061088448cd095c9cbf098e690|1807859|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3941-27-DE-ABRIL-DE-2026-1.pdf
 829724fd387e6ff0c963aff64ffd4d76e002415b71eb1395410865ffaa35f411|2482610|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3942-28-DE-ABRIL-DE-2026.pdf
+df58a9744e85be0671068ef2f54ee1728316b21b63db91693bd33e15681bb32b|3870964|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3943-29-DE-ABRIL-DE-2026.pdf
+d78fece1c4a6d0b7351deca04043e6ba8b65e3d540bfd8111f812832f6997bc5|2525398|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3943-29-DE-ABRIL-DE-2026-Edital-SERH-GS-16_2026-Progressao-de-Referencia-–-Lei-no-12.905_2023.pdf
