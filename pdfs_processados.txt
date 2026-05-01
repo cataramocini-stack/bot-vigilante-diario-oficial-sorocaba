@@ -67,3 +67,10 @@ e411b877ce76e2d95ec3915169ef750b7d1831061088448cd095c9cbf098e690|1807859|https:/
 829724fd387e6ff0c963aff64ffd4d76e002415b71eb1395410865ffaa35f411|2482610|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3942-28-DE-ABRIL-DE-2026.pdf
 df58a9744e85be0671068ef2f54ee1728316b21b63db91693bd33e15681bb32b|3870964|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3943-29-DE-ABRIL-DE-2026.pdf
 d78fece1c4a6d0b7351deca04043e6ba8b65e3d540bfd8111f812832f6997bc5|2525398|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3943-29-DE-ABRIL-DE-2026-Edital-SERH-GS-16_2026-Progressao-de-Referencia-–-Lei-no-12.905_2023.pdf
+ce5df9c3c5a00077a12a42ded9fa4356aa829f81d6e87c120701ccbce977f1ff|670921|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3944-30-DE-ABRIL-DE-2026-Edital-de-Deferimento-de-Inscricoes-Funserv-Concurso-Publico-no-0012026.pdf
+128526903dfa559fd68a75223b5fcc3ec33bf05b97378e5e786eef8fee31a4a7|342837|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3944-30-DE-ABRIL-DE-2026-Balancete-Receita-e-Despesa-Marco.pdf
+9ead08386f52220011909f3e9ca06e11dcff1eaeed272b066880a32e00f017c4|3963431|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3944-30-DE-ABRIL-DE-2026-Escala-Unidades-Basicas.pdf
+4402fa4c5c2ac446d3d1f3425225fae00e298662d413e05724dde8a12f6b4ca9|4863247|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3944-30-DE-ABRIL-DE-2026-Escala-Unidades-Externas.pdf
+5030582e75d2341b635be8b32eeb77d50b4cf1044e5c5588cc13e8f45983630b|8700061|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3944-30-DE-ABRIL-DE-2026-Escala-Unidades-Basicas-Enfermagem.pdf
+5b0b8997f5c111089170a96c9e75a24eedc866049af3365ca1d6217ce906f73d|5550733|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3944-30-DE-ABRIL-DE-2026.pdf
+a753bc536a37cce1d0626ee3144f22d98b68f88c5c1cf3c1f42375a224744dcd|9863778|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3944-30-DE-ABRIL-DE-2026-Escala-Urgencia-e-Emergencia.pdf
