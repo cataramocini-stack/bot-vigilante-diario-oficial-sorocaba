@@ -74,3 +74,5 @@ ce5df9c3c5a00077a12a42ded9fa4356aa829f81d6e87c120701ccbce977f1ff|670921|https://
 5030582e75d2341b635be8b32eeb77d50b4cf1044e5c5588cc13e8f45983630b|8700061|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3944-30-DE-ABRIL-DE-2026-Escala-Unidades-Basicas-Enfermagem.pdf
 5b0b8997f5c111089170a96c9e75a24eedc866049af3365ca1d6217ce906f73d|5550733|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3944-30-DE-ABRIL-DE-2026.pdf
 a753bc536a37cce1d0626ee3144f22d98b68f88c5c1cf3c1f42375a224744dcd|9863778|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/04/3944-30-DE-ABRIL-DE-2026-Escala-Urgencia-e-Emergencia.pdf
+1a0a6d574db27a0c470663ad7765ad3e4f2b034aa08479c36eb9d14c833efb07|1093543|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/05/3945-04-DE-MAIO-DE-2026-Edital-de-Retificacao-Concurso-Publico-no-03_2025-Orientador-Pedagogico.pdf
+be2a66024f88d4ac794868eb3444b86e4674e40085903ff37143247d80a81bb0|3518594|https://noticias.sorocaba.sp.gov.br/wp-content/uploads/2026/05/3945-04-DE-MAIO-DE-2026.pdf
